@@ -1,0 +1,4 @@
+# Ignore Ansible inventory and config
+inventory/
+group_vars/
+ansible.cfg
