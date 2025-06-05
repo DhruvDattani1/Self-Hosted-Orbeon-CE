@@ -1,0 +1,38 @@
+proxmox_node: "proxmox" 
+
+vm_list:
+  - name: master
+    vmid: 201
+    cores: 4
+    memory: 7168      
+    disk_size: 100
+    disk_storage: k3s-zfs
+    iso_storage: local
+    iso: fedora-server.iso
+
+  - name: worker1
+    vmid: 202
+    cores: 2
+    memory: 5120       
+    disk_size: 50
+    disk_storage: k3s-zfs
+    iso_storage: local
+    iso: fedora-server.iso
+
+  - name: worker2
+    vmid: 203
+    cores: 2
+    memory: 5120
+    disk_size: 50
+    disk_storage: k3s-zfs
+    iso_storage: local
+    iso: fedora-server.iso
+
+  - name: worker3
+    vmid: 204
+    cores: 2
+    memory: 5120
+    disk_size: 50
+    disk_storage: k3s-zfs
+    iso_storage: local
+    iso: fedora-server.iso

@@ -1,0 +1,5 @@
+- name: Deploy Fedora VMs on Proxmox
+  hosts: proxmox
+  gather_facts: false
+  roles:
+    - role: proxmox-vm

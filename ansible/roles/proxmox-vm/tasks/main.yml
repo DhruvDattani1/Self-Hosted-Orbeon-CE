@@ -1,0 +1,30 @@
+- name: Create Fedora VM on Proxmox
+  delegate_to: localhost
+  community.general.proxmox_kvm:
+    api_host: "{{ proxmox_api_host }}"
+    api_user: "{{ proxmox_api_user }}"
+    api_token_id: "{{ proxmox_api_token_id }}"
+    api_token_secret: "{{ proxmox_api_token_secret }}"
+    node: "{{ proxmox_node }}"
+    vmid: "{{ item.vmid }}"
+    name: "{{ item.name }}"
+    cores: "{{ item.cores }}"
+    memory: "{{ item.memory }}"
+    scsi:
+      scsi0: "{{ item.disk_storage }}:{{ item.disk_size }},format=raw"
+
+    ide:
+      ide2: "{{ item.iso_storage }}:iso/{{ item.iso }},media=cdrom"
+    net:
+      net0: "virtio,bridge=vmbr0"
+    serial:
+      serial0: socket
+    vga: std
+    boot: order=ide2;scsi0;net0
+    bootdisk: scsi0
+    citype: nocloud
+    cicustom: "user=local:snippets/{{ item.vmid }}-user-data.yml"
+    state: present
+    timeout: 180
+    validate_certs: false
+  loop: "{{ vm_list }}"
