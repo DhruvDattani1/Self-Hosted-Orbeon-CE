@@ -1,0 +1,17 @@
+- name: Install K3s Master Node
+  hosts: master
+  become: true
+  roles:
+    - role: k3s
+      vars:
+        k3s_role: "master"
+        k3s_version: "v1.28.5+k3s1"
+        k3s_enable_traefik: true
+
+- name: Install K3s Worker Nodes
+  hosts: workers
+  become: true
+  roles:
+    - role: k3s
+      vars:
+        k3s_role: "worker"

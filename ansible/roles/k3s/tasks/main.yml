@@ -1,0 +1,138 @@
+- name: Download K3s install script
+  get_url:
+    url: https://get.k3s.io
+    dest: /tmp/install-k3s.sh
+    mode: '0755'
+  tags:
+    - k3s
+    - download
+
+- name: Install K3s master node
+  when: k3s_role == "master"
+  shell: |
+    curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION={{ k3s_version }} \
+      INSTALL_K3S_EXEC="--write-kubeconfig-mode 644 {{ '--disable=traefik' if not k3s_enable_traefik else '' }}" \
+      sh -
+  environment:
+    INSTALL_K3S_VERSION: "{{ k3s_version }}"
+  tags:
+    - k3s
+    - master
+    - install
+
+- name: Wait for K3s master to be ready
+  when: k3s_role == "master"
+  wait_for:
+    port: 6443
+    host: "{{ ansible_default_ipv4.address }}"
+    delay: 10
+    timeout: 300
+  tags:
+    - k3s
+    - master
+    - wait
+
+- name: Get K3s node token from master
+  when: k3s_role == "master"
+  slurp:
+    src: /var/lib/rancher/k3s/server/node-token
+  register: k3s_token_file
+  tags:
+    - k3s
+    - master
+    - token
+
+- name: Set K3s token fact on master
+  when: k3s_role == "master"
+  set_fact:
+    k3s_token: "{{ k3s_token_file.content | b64decode | trim }}"
+  tags:
+    - k3s
+    - master
+    - token
+
+- name: Install K3s worker nodes
+  when: k3s_role == "worker"
+  shell: |
+    curl -sfL https://get.k3s.io | K3S_URL=https://{{ hostvars[groups['master'][0]]['ansible_host'] }}:6443 \
+      K3S_TOKEN={{ hostvars[groups['master'][0]]['k3s_token'] }} \
+      INSTALL_K3S_VERSION={{ k3s_version }} \
+      sh -
+  environment:
+    K3S_URL: "https://{{ hostvars[groups['master'][0]]['ansible_host'] }}:6443"
+    K3S_TOKEN: "{{ hostvars[groups['master'][0]]['k3s_token'] }}"
+    INSTALL_K3S_VERSION: "{{ k3s_version }}"
+  tags:
+    - k3s
+    - worker
+    - install
+
+- name: Ensure K3s service is started and enabled
+  systemd:
+    name: k3s
+    state: started
+    enabled: yes
+  when: k3s_role == "master"
+  tags:
+    - k3s
+    - service
+
+
+- name: Ensure K3s-agent service is started and enabled
+  systemd:
+    name: k3s-agent
+    state: started
+    enabled: yes
+  when: k3s_role == "worker"
+  tags:
+    - k3s
+    - service
+
+- name: Create .kube directory for kubectl access
+  when: k3s_role == "master"
+  file:
+    path: "/home/{{ ansible_user }}/.kube"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+  tags:
+    - k3s
+    - kubectl
+
+- name: Copy kubeconfig for kubectl access
+  when: k3s_role == "master"
+  copy:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: "/home/{{ ansible_user }}/.kube/config"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0600'
+    remote_src: yes
+  tags:
+    - k3s
+    - kubectl
+
+- name: Restrict kubeconfig permissions
+  file:
+    path: "/home/{{ ansible_user }}/.kube/config"
+    mode: '0600'
+  when: k3s_role == "master"
+
+
+- name: Verify K3s installation
+  command: k3s kubectl get nodes
+  register: k3s_nodes
+  when: k3s_role == "master"
+  changed_when: false
+  tags:
+    - k3s
+    - verify
+
+- name: Display cluster status
+  debug:
+    var: k3s_nodes.stdout_lines
+  when: k3s_role == "master" and k3s_nodes is defined
+  tags:
+    - k3s
+    - verify
