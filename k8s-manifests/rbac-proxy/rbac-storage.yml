@@ -1,0 +1,26 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: storage-basic-access
+  namespace: storage
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps", "secrets", "persistentvolumeclaims"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "statefulsets"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: bind-storage-basic-access
+  namespace: storage
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: storage
+roleRef:
+  kind: Role
+  name: storage-basic-access
+  apiGroup: rbac.authorization.k8s.io

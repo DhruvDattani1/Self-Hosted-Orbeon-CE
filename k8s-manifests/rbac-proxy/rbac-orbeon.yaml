@@ -1,0 +1,26 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: orbeon-basic-access
+  namespace: orbeon
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: bind-orbeon-basic-access
+  namespace: orbeon
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: orbeon
+roleRef:
+  kind: Role
+  name: orbeon-basic-access
+  apiGroup: rbac.authorization.k8s.io

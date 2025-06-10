@@ -10,15 +10,15 @@
 - name: Install K3s master node
   when: k3s_role == "master"
   shell: |
-    curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION={{ k3s_version }} \
-      INSTALL_K3S_EXEC="--write-kubeconfig-mode 644 {{ '--disable=traefik' if not k3s_enable_traefik else '' }}" \
-      sh -
+    curl -sfL https://get.k3s.io | sh -
   environment:
     INSTALL_K3S_VERSION: "{{ k3s_version }}"
+    INSTALL_K3S_EXEC: "--write-kubeconfig-mode 644 --flannel-backend=vxlan --tls-san={{ ansible_host }} {{ '--disable=traefik' if not k3s_enable_traefik else '' }}"
   tags:
     - k3s
     - master
     - install
+
 
 - name: Wait for K3s master to be ready
   when: k3s_role == "master"

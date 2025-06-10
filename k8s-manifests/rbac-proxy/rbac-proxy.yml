@@ -1,0 +1,29 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: proxy-basic-access
+  namespace: proxy
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "endpoints", "configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["traefik.containo.us"]
+  resources: ["ingressroutes", "middlewares", "tlsoptions"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: bind-proxy-basic-access
+  namespace: proxy
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: proxy
+roleRef:
+  kind: Role
+  name: proxy-basic-access
+  apiGroup: rbac.authorization.k8s.io
