@@ -22,8 +22,6 @@
     vga: std
     boot: order=ide2;scsi0;net0
     bootdisk: scsi0
-    citype: nocloud
-    cicustom: "user=local:snippets/{{ item.vmid }}-user-data.yml"
     state: present
     timeout: 180
     validate_certs: false

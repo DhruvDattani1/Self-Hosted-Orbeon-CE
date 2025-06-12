@@ -13,7 +13,8 @@
     curl -sfL https://get.k3s.io | sh -
   environment:
     INSTALL_K3S_VERSION: "{{ k3s_version }}"
-    INSTALL_K3S_EXEC: "--write-kubeconfig-mode 644 --flannel-backend=vxlan --tls-san={{ ansible_host }} {{ '--disable=traefik' if not k3s_enable_traefik else '' }}"
+    INSTALL_K3S_EXEC: "--write-kubeconfig-mode 644 --flannel-backend=vxlan --tls-san={{ ansible_host }}"
+
   tags:
     - k3s
     - master
