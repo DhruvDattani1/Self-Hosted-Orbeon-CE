@@ -1,0 +1,6 @@
+- name: Provision NFS-backed Persistent Volumes
+  hosts: master_node
+  gather_facts: false
+  roles:
+    - storage
+

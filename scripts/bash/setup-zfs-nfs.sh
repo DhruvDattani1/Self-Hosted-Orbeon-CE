@@ -21,6 +21,9 @@ for dataset in minio orbeon postgres pv; do
 done
 echo "[+] Creating export directory structure..."
 mkdir -p $EXPORT_PATH/{minio,orbeon,postgres,pv}
+echo "[+] Setting NFS permissions..."
+chown -R nobody:nogroup $EXPORT_PATH
+chmod -R 777 $EXPORT_PATH
 echo "[+] Installing NFS server..."
 apt update
 DEBIAN_FRONTEND=noninteractive apt install -y nfs-kernel-server
