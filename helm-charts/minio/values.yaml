@@ -1,0 +1,32 @@
+mode: standalone
+
+auth:
+  rootUser: admin
+  rootPassword: changeit
+
+persistence:
+  enabled: true
+  existingClaim: minio-pvc
+  mountPath: /data
+
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 250m
+  limits:
+    memory: 1Gi
+    cpu: 500m
+
+extraEnvVars:
+  - name: MINIO_KMS_SECRET_KEY
+    value: auto-gen-key
+  - name: MINIO_ENABLE_KMS
+    value: "on"
+
+service:
+  type: ClusterIP
+  ports:
+    api: 9000
+    console: 9001
+
+replicaCount: 1

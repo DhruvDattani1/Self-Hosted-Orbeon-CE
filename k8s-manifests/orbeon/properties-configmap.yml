@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orbeon-properties
+  namespace: orbeon
+data:
+  properties-local.xml: |
+    <properties xmlns="http://www.orbeon.com/oxf/xml/properties">
+      <!-- Database configuration -->
+      <property as="xs:string" name="oxf.fr.persistence.data.source" value="jdbc"/>
+      <property as="xs:string" name="oxf.fr.persistence.jdbc.datasource" value="java:comp/env/jdbc/orbeon"/>
+      
+      <!-- PostgreSQL connection details -->
+      <property as="xs:string" name="oxf.fr.persistence.data.jdbc.url" 
+                value="jdbc:postgresql://postgres.storage.svc.cluster.local:5432/orbeondb"/>
+      <property as="xs:string" name="oxf.fr.persistence.data.jdbc.username" value="orbeon"/>
+      <property as="xs:string" name="oxf.fr.persistence.data.jdbc.password" value="changeit"/>
+      <property as="xs:string" name="oxf.fr.persistence.data.jdbc.driver" value="org.postgresql.Driver"/>
+      
+      <!-- Connection pool settings -->
+      <property as="xs:int" name="oxf.fr.persistence.data.jdbc.min-pool-size" value="5"/>
+      <property as="xs:int" name="oxf.fr.persistence.data.jdbc.max-pool-size" value="20"/>
+
+      <!-- Binary storage: S3 (MinIO) backend -->
+      <property as="xs:string" name="oxf.fr.binary-storage.backend" value="s3"/>
+      <property as="xs:string" name="oxf.fr.binary-storage.s3.bucket-name" value="orbeon-forms"/>
+      <property as="xs:string" name="oxf.fr.binary-storage.s3.access-key" value="admin"/>
+      <property as="xs:string" name="oxf.fr.binary-storage.s3.secret-key" value="changeit"/>
+      <property as="xs:string" name="oxf.fr.binary-storage.s3.region" value="us-east-1"/>
+      <property as="xs:string" name="oxf.fr.binary-storage.s3.endpoint" value="http://minio.storage.svc.cluster.local:9000"/>
+
+      <!-- File storage fallback (optional) -->
+      <!--
+      <property as="xs:string" name="oxf.fr.persistence.file.location" value="/orbeon-data"/>
+      -->
+
+      <!-- Other useful settings -->
+      <property as="xs:string" name="oxf.xforms.xbl.allow-dynamic-xbl-loading" value="true"/>
+      
+      <!-- Enable form versioning -->
+      <property as="xs:boolean" name="oxf.fr.detail.save.draft" value="true"/>
+      <property as="xs:boolean" name="oxf.fr.persistence.versioning" value="true"/>
+    </properties>

@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orbeon
+  namespace: orbeon 
+  labels:
+    app: orbeon
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orbeon
+  template:
+    metadata:
+      labels:
+        app: orbeon
+    spec:
+      containers:
+        - name: orbeon
+          image: nasqueron/orbeon:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: orbeon-persistent
+              mountPath: /opt/orbeon/data
+            - name: orbeon-properties
+              mountPath: /opt/orbeon/webapps/orbeon/WEB-INF/resources/config/properties-local.xml
+              subPath: properties-local.xml
+      volumes:
+        - name: orbeon-persistent
+          persistentVolumeClaim:
+            claimName: orbeon-pvc
+        - name: orbeon-properties
+          configMap:
+            name: orbeon-properties

@@ -1,0 +1,35 @@
+image:
+  repository: ghcr.io/your-org/orbeon-ce
+  tag: latest
+  pullPolicy: IfNotPresent
+
+resources:
+  requests:
+    memory: 1Gi
+    cpu: 500m
+  limits:
+    memory: 2Gi
+    cpu: 1000m
+
+env:
+  - name: JAVA_OPTS
+    value: "-Xmx1g"
+
+persistence:
+  enabled: true
+  existingClaim: orbeon-pvc
+  mountPath: /orbeon-data
+
+extraVolumes:
+  - name: orbeon-properties
+    configMap:
+      name: orbeon-properties
+
+extraVolumeMounts:
+  - name: orbeon-properties
+    mountPath: /opt/orbeon/webapps/orbeon/WEB-INF/resources/config/properties-local.xml
+    subPath: properties-local.xml
+
+service:
+  type: ClusterIP
+  port: 8080

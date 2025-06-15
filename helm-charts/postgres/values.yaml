@@ -1,0 +1,27 @@
+auth:
+  username: orbeon
+  password: changeit
+  database: orbeondb
+
+primary:
+  persistence:
+    enabled: true
+    existingClaim: postgres-pvc
+    mountPath: /var/lib/postgresql/data
+
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 250m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+
+initdbScripts:
+  enable_pgcrypto.sql: |
+    CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+service:
+  type: ClusterIP
+  ports:
+    postgresql: 5432
