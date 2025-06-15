@@ -8,7 +8,7 @@ spec:
   accessModes:
     - ReadWriteMany
   nfs:
-    path: /mnt/k3s/orbeon
+    path: /export/k3s-data/orbeon
     server: 192.168.1.100
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""

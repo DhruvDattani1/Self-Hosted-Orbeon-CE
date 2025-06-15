@@ -1,3 +1,8 @@
+- name: Determine node role from inventory group
+  set_fact:
+    k3s_role: >-
+      {{ 'master' if 'master' in group_names else 'worker' }}
+
 - name: Download K3s install script
   get_url:
     url: https://get.k3s.io
@@ -12,14 +17,12 @@
   shell: |
     curl -sfL https://get.k3s.io | sh -
   environment:
-    INSTALL_K3S_VERSION: "{{ k3s_version }}"
+    INSTALL_K3S_VERSION: "{{k3s_version}}"
     INSTALL_K3S_EXEC: "--write-kubeconfig-mode 644 --flannel-backend=vxlan --tls-san={{ ansible_host }}"
-
   tags:
     - k3s
     - master
     - install
-
 
 - name: Wait for K3s master to be ready
   when: k3s_role == "master"
@@ -44,9 +47,21 @@
     - token
 
 - name: Set K3s token fact on master
-  when: k3s_role == "master"
+  when: k3s_role == "master" and k3s_token_file is defined
   set_fact:
     k3s_token: "{{ k3s_token_file.content | b64decode | trim }}"
+  tags:
+    - k3s
+    - master
+    - token
+
+- name: Share master token with all hosts
+  when: k3s_role == "master"
+  set_fact:
+    k3s_master_token: "{{ k3s_token }}"
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  loop: "{{ groups['all'] }}"
   tags:
     - k3s
     - master
@@ -55,14 +70,11 @@
 - name: Install K3s worker nodes
   when: k3s_role == "worker"
   shell: |
-    curl -sfL https://get.k3s.io | K3S_URL=https://{{ hostvars[groups['master'][0]]['ansible_host'] }}:6443 \
-      K3S_TOKEN={{ hostvars[groups['master'][0]]['k3s_token'] }} \
-      INSTALL_K3S_VERSION={{ k3s_version }} \
-      sh -
+    curl -sfL https://get.k3s.io | sh -
   environment:
     K3S_URL: "https://{{ hostvars[groups['master'][0]]['ansible_host'] }}:6443"
-    K3S_TOKEN: "{{ hostvars[groups['master'][0]]['k3s_token'] }}"
-    INSTALL_K3S_VERSION: "{{ k3s_version }}"
+    K3S_TOKEN: "{{ hostvars[groups['master'][0]]['k3s_master_token'] }}"
+    INSTALL_K3S_VERSION: "v1.33.0+k3s1"
   tags:
     - k3s
     - worker
@@ -77,7 +89,6 @@
   tags:
     - k3s
     - service
-
 
 - name: Ensure K3s-agent service is started and enabled
   systemd:
@@ -114,18 +125,23 @@
     - k3s
     - kubectl
 
-- name: Restrict kubeconfig permissions
-  file:
-    path: "/home/{{ ansible_user }}/.kube/config"
-    mode: '0600'
+- name: Update kubeconfig server address
   when: k3s_role == "master"
-
+  replace:
+    path: "/home/{{ ansible_user }}/.kube/config"
+    regexp: 'https://127\\.0\\.0\\.1:6443'
+    replace: "https://{{ ansible_host }}:6443"
+  tags:
+    - k3s
+    - kubectl
 
 - name: Verify K3s installation
   command: k3s kubectl get nodes
   register: k3s_nodes
   when: k3s_role == "master"
   changed_when: false
+  retries: 5
+  delay: 10
   tags:
     - k3s
     - verify

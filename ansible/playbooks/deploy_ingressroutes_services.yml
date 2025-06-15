@@ -1,0 +1,31 @@
+- name: Deploy Services and IngressRoutes to K3s
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    kubeconfig_path: "{{ lookup('env', 'HOME') + '/.kube/config' }}"
+    ingress_manifest_dir: "{{ playbook_dir }}/../../k8s-manifests/ingress"
+    service_manifest_dirs:
+      - "{{ playbook_dir }}/../../k8s-manifests/orbeon"
+      - "{{ playbook_dir }}/../../k8s-manifests/minio"
+      - "{{ playbook_dir }}/../../k8s-manifests/postgres"
+
+  tasks:
+    - name: Apply service manifests
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ item }}"
+        kubeconfig: "{{ kubeconfig_path }}"
+      loop: >-
+        {{
+          service_manifest_dirs | map('regex_replace', '$', '/service.yml') | list
+        }}
+
+    - name: Apply IngressRoute manifests
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ item }}"
+        kubeconfig: "{{ kubeconfig_path }}"
+      loop: "{{ lookup('fileglob', ingress_manifest_dir + '/*.yml', wantlist=True) }}"
+

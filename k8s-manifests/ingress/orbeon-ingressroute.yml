@@ -1,0 +1,14 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: orbeon
+  namespace: orbeon
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`orbeon.local`)
+      kind: Rule
+      services:
+        - name: orbeon
+          port: 8080
