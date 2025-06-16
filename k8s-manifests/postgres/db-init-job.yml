@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: orbeon-db-init
+  namespace: storage
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: init-db
+        image: alpine
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          echo "[+] Installing PostgreSQL client..."
+          apk add --no-cache postgresql15-client > /dev/null
+
+          echo "[+] Waiting for PostgreSQL to be reachable..."
+          until nc -z postgres.storage.svc.cluster.local 5432; do sleep 2; done
+
+          echo "[+] Applying pgcrypto + schema..."
+          echo "CREATE EXTENSION IF NOT EXISTS pgcrypto;" > /tmp/full-init.sql
+          cat /schema/init.sql >> /tmp/full-init.sql
+
+          PGPASSWORD=$PGPASSWORD psql -h postgres.storage.svc.cluster.local -U $PGUSER -d $PGDB -f /tmp/full-init.sql
+
+          echo "[✓] Done."
+        env:
+        - name: PGUSER
+          value: orbeon
+        - name: PGPASSWORD
+          value: changeit
+        - name: PGDB
+          value: orbeondb
+        volumeMounts:
+        - name: schema-volume
+          mountPath: /schema
+      volumes:
+      - name: schema-volume
+        configMap:
+          name: orbeon-schema

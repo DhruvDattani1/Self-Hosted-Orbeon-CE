@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: orbeon
-          image: nasqueron/orbeon:latest
+          image: dhruvd22/self_hosted_orbeon_ce:2023.1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080

@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-orbeon-bucket
+  namespace: storage
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: mc
+        image: alpine
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          echo "[+] Installing curl..."
+          apk add --no-cache curl > /dev/null
+          echo "[+] Downloading mc..."
+          curl -sSL -o mc https://dl.min.io/client/mc/release/linux-amd64/mc
+          chmod +x mc
+
+          echo "[+] Waiting for MinIO DNS..."
+          until nslookup minio.storage.svc.cluster.local; do sleep 2; done
+
+          echo "[+] Setting alias..."
+          ./mc alias set minio http://minio.storage.svc.cluster.local:9000 admin changeit
+
+          echo "[+] Creating bucket..."
+          ./mc mb --ignore-existing minio/orbeon-forms
+          echo "[✓] Done."

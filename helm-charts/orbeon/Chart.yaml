@@ -1,6 +1,0 @@
-apiVersion: v2
-name: orbeon
-description: Orbeon CE deployment with PostgreSQL and MinIO integration
-type: application
-version: 0.1.0
-appVersion: "2024.1"

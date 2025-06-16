@@ -15,6 +15,7 @@ spec:
       labels:
         app: postgres
     spec:
+      
       containers:
         - name: postgres
           image: postgres:15

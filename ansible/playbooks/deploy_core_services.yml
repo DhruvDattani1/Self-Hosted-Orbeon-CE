@@ -23,6 +23,25 @@
         - "{{ playbook_dir }}/../../k8s-manifests/minio/service.yml"
         - "{{ playbook_dir }}/../../helm-charts/minio/templates/deployment.yaml"
 
+    - name: Wait for MinIO deployment to be ready
+      kubernetes.core.k8s_info:
+        api_version: apps/v1
+        kind: Deployment
+        name: minio
+        namespace: storage
+        kubeconfig: "{{ kubeconfig_path }}"
+        wait: true
+        wait_condition:
+          type: Available
+          status: "True"
+        wait_timeout: 300
+
+    - name: Deploy MinIO bucket creation job
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ playbook_dir }}/../../k8s-manifests/minio/bucket-creation-job.yml"
+        kubeconfig: "{{ kubeconfig_path }}"
+
     - name: Deploy PostgreSQL service and deployment
       kubernetes.core.k8s:
         state: present
@@ -31,6 +50,18 @@
       loop:
         - "{{ playbook_dir }}/../../k8s-manifests/postgres/service.yml"
         - "{{ playbook_dir }}/../../helm-charts/postgres/templates/deployment.yaml"
+
+    - name: Create Orbeon schema ConfigMap
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ playbook_dir }}/../../k8s-manifests/postgres/schema-configmap.yml"
+        kubeconfig: "{{ kubeconfig_path }}"
+
+    - name: Deploy PostgreSQL schema init job
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ playbook_dir }}/../../k8s-manifests/postgres/db-init-job.yml"
+        kubeconfig: "{{ kubeconfig_path }}"
 
     - name: Deploy Orbeon (service and deployment)
       kubernetes.core.k8s:
