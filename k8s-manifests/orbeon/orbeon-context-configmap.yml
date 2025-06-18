@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orbeon-context
+  namespace: orbeon
+data:
+  orbeon.xml: |
+    <Context>
+      <Resource name="jdbc/orbeon"
+                auth="Container"
+                type="javax.sql.DataSource"
+                driverClassName="org.postgresql.Driver"
+                url="jdbc:postgresql://postgres.storage.svc.cluster.local:5432/orbeondb"
+                username="orbeon"
+                password="changeit"
+                maxActive="20"
+                maxIdle="10"
+                maxWait="10000"
+                factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"/>
+    </Context>
+

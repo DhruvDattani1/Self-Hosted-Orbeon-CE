@@ -25,8 +25,12 @@ spec:
             - name: orbeon-persistent
               mountPath: /opt/orbeon/data
             - name: orbeon-properties
-              mountPath: /opt/orbeon/webapps/orbeon/WEB-INF/resources/config/properties-local.xml
-              subPath: properties-local.xml
+              mountPath: /opt/orbeon/webapps/orbeon/WEB-INF/resources/config/properties-prod.xml
+              subPath: properties-prod.xml
+            - name: orbeon-context
+              mountPath: /usr/local/tomcat/conf/Catalina/localhost/orbeon.xml
+              subPath: orbeon.xml
+
       volumes:
         - name: orbeon-persistent
           persistentVolumeClaim:
@@ -34,3 +38,7 @@ spec:
         - name: orbeon-properties
           configMap:
             name: orbeon-properties
+        - name: orbeon-context
+          configMap:
+            name: orbeon-context
+

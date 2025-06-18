@@ -13,6 +13,13 @@
         state: present
         src: "{{ orbeon_configmap_file }}"
         kubeconfig: "{{ kubeconfig_path }}"
+        
+    - name: Create Orbeon context ConfigMap
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ playbook_dir }}/../../k8s-manifests/orbeon/orbeon-context-configmap.yml"
+        kubeconfig: "{{ kubeconfig_path }}"
+
 
     - name: Deploy MinIO service and deployment
       kubernetes.core.k8s:

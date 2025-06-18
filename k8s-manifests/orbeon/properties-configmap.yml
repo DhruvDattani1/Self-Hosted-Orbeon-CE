@@ -4,40 +4,55 @@ metadata:
   name: orbeon-properties
   namespace: orbeon
 data:
-  properties-local.xml: |
-    <properties xmlns="http://www.orbeon.com/oxf/xml/properties">
-      <!-- Database configuration -->
-      <property as="xs:string" name="oxf.fr.persistence.data.source" value="jdbc"/>
-      <property as="xs:string" name="oxf.fr.persistence.jdbc.datasource" value="java:comp/env/jdbc/orbeon"/>
-      
-      <!-- PostgreSQL connection details -->
-      <property as="xs:string" name="oxf.fr.persistence.data.jdbc.url" 
-                value="jdbc:postgresql://postgres.storage.svc.cluster.local:5432/orbeondb"/>
-      <property as="xs:string" name="oxf.fr.persistence.data.jdbc.username" value="orbeon"/>
-      <property as="xs:string" name="oxf.fr.persistence.data.jdbc.password" value="changeit"/>
-      <property as="xs:string" name="oxf.fr.persistence.data.jdbc.driver" value="org.postgresql.Driver"/>
-      
-      <!-- Connection pool settings -->
-      <property as="xs:int" name="oxf.fr.persistence.data.jdbc.min-pool-size" value="5"/>
-      <property as="xs:int" name="oxf.fr.persistence.data.jdbc.max-pool-size" value="20"/>
+  properties-prod.xml: |
+    <properties xmlns="http://www.orbeon.com/oxf/xml/properties"
+                xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                xmlns:fr="http://orbeon.org/oxf/xml/form-runner"
+                xmlns:xxf="http://orbeon.org/oxf/xml/xforms">
 
-      <!-- Binary storage: S3 (MinIO) backend -->
-      <property as="xs:string" name="oxf.fr.binary-storage.backend" value="s3"/>
-      <property as="xs:string" name="oxf.fr.binary-storage.s3.bucket-name" value="orbeon-forms"/>
-      <property as="xs:string" name="oxf.fr.binary-storage.s3.access-key" value="admin"/>
-      <property as="xs:string" name="oxf.fr.binary-storage.s3.secret-key" value="changeit"/>
-      <property as="xs:string" name="oxf.fr.binary-storage.s3.region" value="us-east-1"/>
-      <property as="xs:string" name="oxf.fr.binary-storage.s3.endpoint" value="http://minio.storage.svc.cluster.local:9000"/>
+      <!-- Disable fallback persistence providers -->
+      <property as="xs:boolean" name="oxf.fr.persistence.sqlite.active" value="false"/>
+      <property as="xs:boolean" name="oxf.fr.persistence.exist.active" value="false"/>
+      <property as="xs:string"  name="oxf.fr.persistence.provider.demo.*.*" value=""/>
 
-      <!-- File storage fallback (optional) -->
-      <!--
-      <property as="xs:string" name="oxf.fr.persistence.file.location" value="/orbeon-data"/>
-      -->
+      <!-- Force PostgreSQL for all apps/forms/stages -->
+      <property as="xs:string" name="oxf.fr.persistence.provider.*.*.form" value="postgresql"/>
+      <property as="xs:string" name="oxf.fr.persistence.provider.*.*.data" value="postgresql"/>
+      <property as="xs:string" name="oxf.fr.persistence.provider.*.*.*.attachments" value="postgresql"/>
+      <property as="xs:string" name="oxf.fr.persistence.provider.*.*.*.draft" value="postgresql"/>
 
-      <!-- Other useful settings -->
-      <property as="xs:string" name="oxf.xforms.xbl.allow-dynamic-xbl-loading" value="true"/>
-      
-      <!-- Enable form versioning -->
+      <!-- Explicit override for Form Builder app -->
+      <property as="xs:string" name="oxf.fr.persistence.provider.orbeon.*.form" value="postgresql"/>
+      <property as="xs:string" name="oxf.fr.persistence.provider.orbeon.*.data" value="postgresql"/>
+
+      <!-- PostgreSQL JNDI Datasource (ONLY) -->
+      <property as="xs:string" name="oxf.fr.persistence.postgresql.datasource" value="java:comp/env/jdbc/orbeon"/>
+
+      <!-- REMOVED: All direct datasource properties that conflict with JNDI -->
+      <!-- Your context.xml handles the connection details -->
+
+      <!-- MinIO / S3 Binary Attachment Support -->
+      <property as="xs:string" name="oxf.fr.attachment.storage" value="s3"/>
+      <property as="xs:string" name="oxf.fr.attachment.s3.bucket" value="orbeon-forms"/>
+      <property as="xs:string" name="oxf.fr.attachment.s3.access-key" value="admin"/>
+      <property as="xs:string" name="oxf.fr.attachment.s3.secret-key" value="changeit"/>
+      <property as="xs:string" name="oxf.fr.attachment.s3.region" value="us-east-1"/>
+      <property as="xs:string" name="oxf.fr.attachment.s3.endpoint" value="http://minio.storage.svc.cluster.local:9000"/>
+      <property as="xs:boolean" name="oxf.fr.attachment.s3.path-style-access" value="true"/>
+
+      <!-- Draft and versioning config -->
       <property as="xs:boolean" name="oxf.fr.detail.save.draft" value="true"/>
       <property as="xs:boolean" name="oxf.fr.persistence.versioning" value="true"/>
+
+      <!-- Enable debug logging for persistence -->
+      <property as="xs:string" name="oxf.logging.level.org.orbeon.oxf.fr.persistence" value="debug"/>
+      <property as="xs:string" name="oxf.logging.level.org.orbeon.oxf.fr.persistence.relational" value="debug"/>
+      <property as="xs:string" name="oxf.logging.level.org.orbeon.oxf.fr.persistence.postgresql" value="debug"/>
+
+      <!-- General logging & diagnostics -->
+      <property as="xs:boolean" name="oxf.logging.config" value="true"/>
+      <property as="xs:boolean" name="oxf.xforms.logging.log-xforms-submission" value="true"/>
+      <property as="xs:boolean" name="oxf.xforms.submission.trace" value="true"/>
+      <property as="xs:boolean" name="oxf.xforms.xbl.allow-dynamic-xbl-loading" value="true"/>
+
     </properties>
