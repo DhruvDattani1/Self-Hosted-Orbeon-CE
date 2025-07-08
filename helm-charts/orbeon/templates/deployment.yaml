@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: orbeon
-  namespace: orbeon 
+  namespace: orbeon
   labels:
     app: orbeon
 spec:
@@ -15,30 +15,49 @@ spec:
       labels:
         app: orbeon
     spec:
+      initContainers:
+      - name: jdbc-driver
+        image: dhruvd22/self_hosted_orbeon_ce:2023.1
+        command:
+        - sh
+        - -c
+        - |
+          wget -O /shared/postgresql-42.7.7.jar https://jdbc.postgresql.org/download/postgresql-42.7.7.jar
+          cp -r /usr/local/tomcat/lib/* /tomcat-lib/
+          cp /shared/postgresql-42.7.7.jar /tomcat-lib/
+        volumeMounts:
+        - name: jdbc-drivers
+          mountPath: /shared
+        - name: tomcat-lib
+          mountPath: /tomcat-lib
       containers:
-        - name: orbeon
-          image: dhruvd22/self_hosted_orbeon_ce:2023.1
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 8080
-          volumeMounts:
-            - name: orbeon-persistent
-              mountPath: /opt/orbeon/data
-            - name: orbeon-properties
-              mountPath: /opt/orbeon/webapps/orbeon/WEB-INF/resources/config/properties-prod.xml
-              subPath: properties-prod.xml
-            - name: orbeon-context
-              mountPath: /usr/local/tomcat/conf/Catalina/localhost/orbeon.xml
-              subPath: orbeon.xml
-
-      volumes:
+      - name: orbeon
+        image: dhruvd22/self_hosted_orbeon_ce:2023.1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        volumeMounts:
         - name: orbeon-persistent
-          persistentVolumeClaim:
-            claimName: orbeon-pvc
+          mountPath: /opt/orbeon/data
         - name: orbeon-properties
-          configMap:
-            name: orbeon-properties
+          mountPath: /opt/orbeon/webapps/orbeon/WEB-INF/resources/config/properties-prod.xml
+          subPath: properties-prod.xml
         - name: orbeon-context
-          configMap:
-            name: orbeon-context
-
+          mountPath: /usr/local/tomcat/conf/Catalina/localhost/orbeon.xml
+          subPath: orbeon.xml
+        - name: tomcat-lib
+          mountPath: /usr/local/tomcat/lib
+      volumes:
+      - name: orbeon-persistent
+        persistentVolumeClaim:
+          claimName: orbeon-pvc
+      - name: orbeon-properties
+        configMap:
+          name: orbeon-properties
+      - name: orbeon-context
+        configMap:
+          name: orbeon-context
+      - name: jdbc-drivers
+        emptyDir: {}
+      - name: tomcat-lib
+        emptyDir: {}
