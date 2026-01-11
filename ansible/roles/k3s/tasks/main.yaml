@@ -1,7 +1,12 @@
+---
+- name: Set default k3s_version if not defined
+  set_fact:
+    k3s_version: "{{ k3s_version | default('v1.28.5+k3s1') }}"
+
 - name: Determine node role from inventory group
   set_fact:
     k3s_role: >-
-      {{ 'master' if 'master' in group_names else 'worker' }}
+      {{ 'master' if inventory_hostname in groups['master'] else 'worker' }}
 
 - name: Download K3s install script
   get_url:
@@ -17,7 +22,7 @@
   shell: |
     curl -sfL https://get.k3s.io | sh -
   environment:
-    INSTALL_K3S_VERSION: "{{k3s_version}}"
+    INSTALL_K3S_VERSION: "{{ k3s_version }}"
     INSTALL_K3S_EXEC: "--write-kubeconfig-mode 644 --flannel-backend=vxlan --tls-san={{ ansible_host }}"
   tags:
     - k3s
@@ -61,7 +66,8 @@
     k3s_master_token: "{{ k3s_token }}"
   delegate_to: "{{ item }}"
   delegate_facts: true
-  loop: "{{ groups['all'] }}"
+  loop: "{{ groups['master'] + groups['workers'] }}"
+  run_once: true
   tags:
     - k3s
     - master
@@ -73,8 +79,8 @@
     curl -sfL https://get.k3s.io | sh -
   environment:
     K3S_URL: "https://{{ hostvars[groups['master'][0]]['ansible_host'] }}:6443"
-    K3S_TOKEN: "{{ hostvars[groups['master'][0]]['k3s_master_token'] }}"
-    INSTALL_K3S_VERSION: "v1.33.0+k3s1"
+    K3S_TOKEN: "{{ k3s_master_token }}"
+    INSTALL_K3S_VERSION: "{{ k3s_version }}"
   tags:
     - k3s
     - worker

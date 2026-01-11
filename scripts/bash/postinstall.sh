@@ -18,7 +18,7 @@ fi
 log "Setting up SSH key for ansible user"
 mkdir -p /home/ansible/.ssh
 cat <<EOF > /home/ansible/.ssh/authorized_keys
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIInLtKqzeA+MPhHWHu31K1kyC36PlJUdkxPysjGn6Uh/ dhruvd22@gmail.com
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICYNpv5komPCiXJcIYS2ui7HjN10ovnMUJjdnsq2TjPr dhruvd22@gmail.com
 EOF
 chown -R ansible:ansible /home/ansible/.ssh
 chmod 700 /home/ansible/.ssh
