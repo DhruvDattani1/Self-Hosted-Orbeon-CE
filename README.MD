@@ -40,14 +40,6 @@ Right now I’m **stuck on connectivity between Orbeon, PostgreSQL, and MinIO**.
 So everything is **90% there**—the cluster, the services, the automation—just need to untangle these backend connection gremlins. 🐛
 
 ---
-
-## 🔑 About the SSH Key in `postinstall.sh`
-
-You might notice an SSH key hardcoded in the **postinstall script**. Don’t worry—it’s an **old, invalid key** left in for convenience/testing.
-👉 *No, you can’t hack my cluster with it. But nice try.* 😅
-
----
-
 ## 🚧 Status
 
 This repo is **work in progress**. It already demonstrates:
